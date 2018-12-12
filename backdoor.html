@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Phone Home</title>
+</head>
+<body>
+  <h1>ET Phone Home</h1>
+  <p>Started at: {{startTime}}</p>
+  <form method="POST" action="{{clearUrl}}">
+    <input type="submit" value="Clear" />
+  </form>
+  <ul>
+    {{#each requests}}
+    <li>
+      {{method}} {{path}}
+      {{#if query}}
+        <br/>
+        <ul>
+        {{#each query}}
+          <li>{{key}}: {{value}}</li>
+        {{/each}}
+        </ul>
+      {{/if}}
+      {{#if cookies}}
+        <br/>
+        <p>Cookies:</p>
+        <ul>
+          {{#each cookies}}
+          <li>{{this}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+    </li>
+    {{/each}}
+  </ul>
+</body>
+</html>

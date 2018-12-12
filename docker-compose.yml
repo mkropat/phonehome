@@ -1,0 +1,52 @@
+# forked from: https://github.com/gilyes/docker-nginx-letsencrypt-sample/blob/master/docker-compose.yml
+
+version: "2"
+
+services:
+  nginx:
+    container_name: nginx
+    image: nginx
+    labels:
+        com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    volumes:
+      - "/etc/nginx/conf.d"
+      - "/etc/nginx/vhost.d"
+      - "/usr/share/nginx/html"
+      - "./volumes/proxy/certs:/etc/nginx/certs:ro"
+
+  nginx-gen:
+    command: -notify-sighup nginx -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    container_name: nginx-gen
+    image: jwilder/docker-gen
+    labels:
+        com.github.jrcs.letsencrypt_nginx_proxy_companion.docker_gen: "true"
+    restart: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      - "./nginx-proxy/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro"
+    volumes_from:
+      - nginx
+
+  nginx-letsencrypt:
+    container_name: nginx-letsencrypt
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    restart: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./volumes/proxy/certs:/etc/nginx/certs:rw"
+    volumes_from:
+      - nginx
+
+  phonehome:
+    build: .
+    container_name: phonehome
+    environment:
+      - VIRTUAL_HOST=phonehome.mlk.space
+      - LETSENCRYPT_HOST=phonehome.mlk.space
+      - LETSENCRYPT_EMAIL=mail@michael.kropat.name
+    image: mkropat/phonehome
+    restart: unless-stopped
